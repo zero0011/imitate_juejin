@@ -20,7 +20,21 @@ var user = sequelize.define('users',{
     token : {
         type : Sequelize.UUID,
     },
+    // cookie
+    cookie : {
+        type : Sequelize.STRING(50)
+    },
     phone : Sequelize.STRING(50), // 电话号码
+
+    // 文章
+    article : {
+        type : Sequelize.TEXT
+    },
+
+    // 封面图片
+    image : {
+        type : Sequelize.BLOB
+    },
 
     // 创建时间
     createAt : {

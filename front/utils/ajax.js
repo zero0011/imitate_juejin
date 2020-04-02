@@ -25,7 +25,10 @@ function request({
     url = baseUrl + url;
     xhr.open(method,url,true);
     xhr.withCredentials = true;
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    // 设置头部
+    for(let key in headers) {
+      xhr.setRequestHeader(key, headers[key]);
+    }
     // 通过 Content-Type 为 application/x-www-form-urlencoded 设置 发送的数据类型 为 qs.stringfy(data)
     xhr.send(qs.stringify(data));
 

@@ -23,7 +23,7 @@
             <input
               type="text"
               maxlength="64"
-              placeholder="请输入手机号或邮箱"
+              placeholder="请输入用户名"
               class="input"
               v-model="username"
               name="username"
@@ -72,61 +72,72 @@ export default {
     return {
       items: [
         {
-          id : 1,
+          id: 1,
           title: "微博",
           alt: "微博",
           src: "https://b-gold-cdn.xitu.io/v3/static/img/weibo.fa758eb.svg"
         },
         {
-          id : 2,
+          id: 2,
           title: "微信",
           alt: "微信",
           src: "https://b-gold-cdn.xitu.io/v3/static/img/wechat.e0ff124.svg"
         },
         {
-          id : 3,
+          id: 3,
           title: "GitHub",
           alt: "GitHub",
           src: "https://b-gold-cdn.xitu.io/v3/static/img/github.547dd8a.svg"
         }
       ],
       // 用户名
-      username : '',
-      // 密码 
-      password : '',
-      
+      username: "",
+      // 密码
+      password: ""
     };
   },
-  methods : {
-      // 关闭弹出
-      close () {
-        this.$emit('changeState',true);
-      },
-      // 登录功能
-      login () {
-        let data ={
-          username : this.username,
-          password : this.password,
-        };
-        this.$ajax.request({
-          url : '/login', // 登录接口
-          method : 'post',
-          data : data
+  methods: {
+    // 关闭弹出
+    close() {
+      this.$emit("changeState", true);
+    },
+    // 登录功能
+    login() {
+      let data = {
+        username: this.username,
+        password: this.password
+      };
+      this.$ajax
+        .request({
+          url: "/login", // 登录接口
+          method: "post",
+          data: data,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
         })
         // 登录成功后返回数组 , 并传递给 App父组件
         .then(res => {
-          // 成功返回
-          // 传递给 App.vue
-          this.$emit('get_state_array',res);
+          res = JSON.parse(res);
+          if (res.code === 1) {
+            // 用户还未注册 , 通过 alert() 提醒用户 , element
+            console.log("用户未注册");
+            alert("用户未注册");
+          } else {
+            // 成功返回
+            // 传递给 App.vue
+            res = JSON.stringify(res);
+            this.$emit("loginState", res);
+          }
         })
         .catch(err => {
-          console.log(err)
-        })
-      }
+          console.log(err);
+        });
+    }
   },
-  props : {
+  props: {
     // 是否登录
-    Islogged :Boolean,
+    Islogged: Boolean
   }
 };
 </script>
@@ -200,16 +211,16 @@ export default {
   bottom: 0;
   margin-top: 2.5rem;
   width: 20px;
-  height:4px;
+  height: 4px;
   background-color: #55acee;
   transform: rotate(45deg);
 }
 .ion-close-round::after {
   cursor: pointer;
-  content:'';
-  display:block;
+  content: "";
+  display: block;
   width: 20px;
-  height:5px;
+  height: 5px;
   background-color: #55acee;
   transform: rotate(90deg);
 }

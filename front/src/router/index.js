@@ -11,6 +11,12 @@ import career from '@/components/Header/tags/career.vue'
 import freebie from '@/components/Header/tags/freebie.vue'
 import frontend from '@/components/Header/tags/frontend.vue'
 import ios from '@/components/Header/tags/ios.vue'
+import write_article from '@/components/write_article/write_article.vue'
+import books from '@/components/Header/titles/books.vue'
+import events from '@/components/Header/titles/events.vue'
+import hot from '@/components/Header/titles/hot.vue'
+import topics from '@/components/Header/titles/topics.vue'
+
 Vue.use(Router)
 
 export default new Router({
@@ -69,6 +75,31 @@ export default new Router({
       path : '/ios',
       name : 'ios',
       component : ios
+    },
+    {
+      path : '/writeArticle',
+      name : 'wirteArticle',
+      component : write_article
+    },
+    {
+      path : '/books',
+      name : 'books',
+      component : books
+    },
+    {
+      path : '/events',
+      name : 'events',
+      component : events
+    },
+    {
+      path : '/topics',
+      name : 'topics',
+      component : topics
+    },
+    {
+      path : '/hot',
+      name : 'hot',
+      component : hot
     }
   ]
 })

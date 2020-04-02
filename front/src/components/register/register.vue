@@ -53,7 +53,7 @@ export default {
     IsRegister: Boolean
   },
   methods: {
-    //关闭按键
+    //关闭 注册弹出框 按键
     close() {
       this.$emit("registerState", true);
     },
@@ -68,12 +68,23 @@ export default {
       this.$ajax.request({
         url : '/register' ,// 注册接口
         method : 'POST',
-        data : data
+        data : data,
+        headers : {
+          "Content-Type" : "application/x-www-form-urlencoded"
+        }
       })
-      .then(res => {
-        res = JSON.parse(res)
-        if(res.code === 4) {
+      .then(register_res_data => {
+        register_res_data = JSON.parse(register_res_data);
+        if(register_res_data.code === 4) {
+          // 注册失败 , 号码已经存在
           console.log('号码已经存在');
+          alert('号码已经注册');
+        } else if(register_res_data.code === 5) {
+          // 注册成功
+          // 关闭注册弹出框   返回头像地址
+          register_res_data = JSON.stringify(register_res_data);
+          // 子传给父 后端返回的 JSON数据
+          this.$emit("registerState", register_res_data); 
         }
       })
       .catch(err => {

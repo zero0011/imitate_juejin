@@ -33,7 +33,7 @@
           <!-- 写文章button -->
           <li class="write_button" :class="{none : !state_array.IsloggedSuccessful}">
             <el-dropdown split-button type="primary" @click="handleClick">
-              写文章
+              <router-link to="/WriteArticle">写文章</router-link>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item>发布热点</el-dropdown-item>
                 <el-dropdown-item>分享链接</el-dropdown-item>
@@ -81,11 +81,10 @@
       <div class="right"></div>
     </div>
     <router-view></router-view>
-    <!-- 内容 -->
-    <Main />
+    
     <!-- 登录框 -->
     <div :class="{ none : Islogged }">
-      <Login :Islogged="Islogged" @changeState="changeState" @get_state_array="get_state_array"/>
+      <Login :Islogged="Islogged" @changeState="changeState" @loginState="loginState"/>
     </div>
     <!-- 注册框 -->
      <div :class="{ none : IsRegister}" >
@@ -95,7 +94,6 @@
 </template>
 
 <script>
-import Main from "@/components/main/main.vue";
 import Login from "@/components/login/login.vue";
 import Register from "@/components/register/register.vue"
 export default {
@@ -107,7 +105,7 @@ export default {
       items: [
         {
           classname: "home",
-          router: "/",
+          router: "/recommended",
           name: "首页"
         },
         {
@@ -139,12 +137,11 @@ export default {
       state_array: {
         IsloggedSuccessful : false,
         notice_url : require('@/assets/icon_notice.png'),
-        avatar_src : require('@/assets/avatar.png')
+        avatar_src : require('@/assets/avatar.png') // 头像 url , 在没有登录注册之前 ,并没有确定
       }
     };
   },
   components: {
-    Main, // 主要内容
     Login ,// 登录组件
     Register // 注册组件
   },
@@ -159,12 +156,12 @@ export default {
       this.Islogged = value;
     },
     // 子传父响应函数 
-    get_state_array(value) {
+    loginState(value) {
        value = JSON.parse(value);
       // 对 state_array 进行重新赋值
       this.state_array.IsloggedSuccessful = value.IsloggedSuccessful;
       // 一般 url , 客户端直接传递一个url字符串 , 这里本地文件就无法重新赋值
-
+      
       // 对登录弹出框状态赋值
       this.Islogged = value.IsloggedSuccessful;
     },
@@ -174,10 +171,22 @@ export default {
       this.IsRegister = false;
     },
     // 子传父 , 注册状态
-    registerState(value) {
-      this.IsRegister = value;
+    registerState(register_res_data) {
+      register_res_data = JSON.parse(register_res_data); // 解析
+      let obj = register_res_data
+      
+      // 对注册框 状态赋值
+      this.IsRegister = !obj.IsRegisterState;
+      // 对头像 url 进行赋值 , 应该会失败
+      // let src = require(avatar_src);
+      this.state_array.avatar_src = obj.avatar_src;
+      // 对 state_array 进行重新赋值
+      this.state_array.IsloggedSuccessful = obj.IsregisterState;
     },
-    handleClick() {}
+    // 写文章 按键
+    handleClick() {
+      
+    }
   }
 };
 </script>
@@ -271,6 +280,10 @@ html {
 .write_button {
   margin-top: 1rem;
   margin-left: 2rem;
+}
+.write_button a {
+  color: inherit;
+  list-style: none;
 }
 .notification {
   margin-left: 1rem;
