@@ -20,7 +20,7 @@
             <li v-for="(content , index) in contents" class="item-title" :key="index">
               <div class="entry-box">
                 <div class="entry">
-                  <a :href="content.href" class="entry-link" target="_blank">
+                  <router-link class="entry-link" target="_blank" :to="content.href">
                     <div class="content-box">
                       <!-- 左边内容 -->
                       <div class="info-box">
@@ -40,7 +40,7 @@
                           </ul>
                         </div>
                         <div class="info-rwo title-row">
-                          <a href="/post" class="title">{{content.title}}</a>
+                          <router-link :to="content.href" class="title" target="_blank">{{content.title}}</router-link>
                         </div>
                         <div class="info-row action-row">
                           <ul class="action-list" >
@@ -54,7 +54,7 @@
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </router-link>
                 </div>
               </div>
             </li>
@@ -94,10 +94,10 @@ export default {
       // 主要内容
       contents: [
         {
-          href: "",
+          href: "a", // 生成
           post: "专栏",
-          author: "掘金酱",
-          time: "12小时前",
+          author: "掘金酱", // 作者
+          time: "12小时前", // 时间
           title: "写给作者的",
           tags: [
             {
@@ -122,7 +122,10 @@ export default {
           ]
         }
       ],
-    };
+    }
+  },
+  props : {
+    
   }
 };
 </script>

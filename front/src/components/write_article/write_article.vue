@@ -9,7 +9,7 @@
         <div class="main-image-selector with-padding">
           <!-- 上传图片 -->
           <div class="toggle-btn">
-            <input type="file" class="file toggle-btn" @change="handleFileChange"/>
+            <input type="file" class="file toggle-btn" @change="handleFileChange" />
           </div>
         </div>
         <span class="upload-pic">上传封面图片</span>
@@ -18,12 +18,18 @@
     <div class="main">
       <!-- @save : 按下 ctrl + s 时触发 -->
       <!-- @change : 当值发生改变时 触发 -->
-      <mavon-editor ref="editor" v-model="doc" @save="saveDoc" @cahnge="updateDoc"></mavon-editor>
+      <mavon-editor ref="editor" v-model="doc" @save="saveDoc"></mavon-editor>
     </div>
   </div>
 </template>
 
 <script>
+// 图片文件 切片大小
+const SIZE = 5 * 1024; // 5kb
+// 文本 切片大小
+const html_size = 100; // 每个切片有 50个字符串
+// 函数调用次数
+const function_calls = 1;
 import { mavonEditor } from "mavon-editor";
 import "mavon-editor/dist/css/index.css";
 export default {
@@ -35,30 +41,59 @@ export default {
     return {
       doc: "", // 输入的markdown text
       html: "", // 输入的 markdown html
-      photo_file : null // 封面图片
+      photo_file: null, // 封面图片
+      data: [], // 图片 blob 数组
+      html_data: [], // 文本 切片 数组
+      html_text_md5: "" // 文本内容的 md5 摘要
     };
   },
   methods: {
-    // 更新时的回调函数
-    updateDoc(markdown, html) {
-      console.log(markdown);
-      console.log("---------------------------");
-      console.log(html);
-    },
-
     // 保存时的回调函数
-    saveDoc(markdown, html) {
+     saveDoc(markdown, html, function_calls) {
       // 先编码 , 再把 html 发送到后端
-      html = this.encodeHtml(html);
+      const html_new = this.encodeHtml(html);
+
+      // html 内容为 空 , 或者不变 , 则不发送
+      if (html_new.length === 0) return;
       // 把 photo_file 和 html 同时发送给后端
-      console.log(this.photo_file);
 
       // mark_data
-      let mark_data = {
-        html : html,
-        photo : photo_file
+      if (this.photo_file) {
+        // 存在封面图
+
+        // 发送 html 字符串
+        // 字符串切片后
+        this.html_data = this.createTextChunks(html_size, html_new);
+        //并发发送给后端
+         this.uploadTextChunks(this.html_data);
+        // 发送合并文本请求
+         this.mergerTextRequest();
+
+        // 发送图片
+        if (!this.photo_file) return;
+         const fileChunkList =  this.createFileChunks(this.photo_file);
+        this.data = fileChunkList.map(({ file }, index) => ({
+          chunk: file,
+          hash: this.photo_file.name + "-" + index // 文件名 + 数组下标
+        }));
+         this.uploadChunks();
+      } else {
+        // 发送字符串
+        // console.log(html);
+        // 字符串切片后 , 并发 发送给后端
+        this.html_data = this.createTextChunks(html_size, html_new);
+        // console.log(this.html_data);
+         this.uploadTextChunks(this.html_data);
+        // 发送合并文本请求
+         this.mergerTextRequest()
       }
-      
+
+      // 递归调用
+      //通过 md5 查看, 文本与 图片是否传输完毕  , 没有的
+      if (function_calls) {
+        function_calls--;
+        this.saveDoc(markdown, html, function_calls);
+      }
     },
 
     // 为了防止 存储型 XSS 攻击 , 设计编码函数
@@ -85,6 +120,136 @@ export default {
       const [file] = e.target.files;
       if (!file) return;
       this.photo_file = file;
+    },
+    // 生成文件切片
+    async createFileChunks(file, size = SIZE) {
+      const fileChunkList = [];
+      let cur = 0;
+      while (cur < file.size) {
+        fileChunkList.push({
+          file: file.slice(cur, cur + size)
+        });
+        cur += size;
+      }
+      return fileChunkList;
+    },
+    // 上传切片
+    async uploadChunks() {
+      const requestList = this.data
+        .map(({ chunk, hash }) => {
+          const formData = new FormData();
+          formData.append("chunk", chunk);
+          formData.append("hash", hash);
+          formData.append("filename", this.photo_file.name);
+          return { formData };
+        })
+        .map(async ({ formData }) => {
+          this.request({
+            url: "/markdown_image",
+            data: formData
+          });
+        });
+      await Promise.all(requestList);
+      // 合并请求
+      await this.mergerRequest();
+    },
+    // 合并请求
+    async mergerRequest() {
+      const data = {
+        filename: this.photo_file.name,
+        size: SIZE
+      };
+      await this.$ajax.request({
+        url: "/merge_image", //合并接口
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        data: data,
+        method: "POST"
+      });
+    },
+    // 请求方式
+    request({ url, method = "POST", data, headers = {}, requestList }) {
+      return new Promise(resolve => {
+        const xhr = new XMLHttpRequest();
+        url = "http://localhost:3000" + url;
+        xhr.open(method, url);
+        Object.keys(headers).forEach(key =>
+          xhr.setRequestHeader(key, headers[key])
+        );
+        xhr.send(data);
+        xhr.onload = e => {
+          resolve({
+            data: e.target.response
+          });
+        };
+      });
+    },
+    // 生成文本切片
+    createTextChunks(html_size, html) {
+      const html_data = [];
+      let cur = 0;
+      while (cur < html.length) {
+        html_data.push({
+          chunk: html.slice(cur, cur + html_size)
+        });
+        cur += html_size;
+      }
+      return html_data;
+    },
+    // 并发发送 文本切片
+    async uploadTextChunks(html_data) {
+      let requestTextList = html_data.map((text, index) => {
+        let data = {
+          text: text.chunk,
+          hash: index
+        };
+        // 并发发送
+        return this.$ajax
+          .request({
+            url: "/markdown",
+            method: "POST",
+            data: data,
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            }
+          })
+          .then(res => {
+            res = JSON.parse(res);
+            
+          });
+      });
+      await Promise.all(requestTextList);
+    },
+    // 文本合并请求
+    async mergerTextRequest() {
+      let data = {
+        // 发送 文本切片数组长度
+        length: this.html_data.length
+      };
+      await this.$ajax
+        .request({
+          url: "/merge_markdown",
+          method: "POST",
+          data: data,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          IswithCredentials: true
+        })
+        .then(res => {
+          res = JSON.parse(res);
+          if (res.code === 7) {
+            // 文本存储完毕
+            
+            console.log(res.return_data);
+            // 把返回的数据 传递给 main.vue , 子组件与子组件通信
+            
+
+            // 路由跳转
+            // this.$router.push('recommended');
+          }
+        });
     }
   }
 };

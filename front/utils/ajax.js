@@ -16,15 +16,16 @@ const axios = require('axios');
 
 function request({
   url = '',
-  method = 'get',
+  method = 'POST',
   headers = {},
-  data  = {}
+  data  = {},
+  IswithCredentials = true
 }) {
   var xhr = new XMLHttpRequest();
   return new Promise((resolve,reject) => {
     url = baseUrl + url;
     xhr.open(method,url,true);
-    xhr.withCredentials = true;
+    xhr.withCredentials = IswithCredentials;
     // 设置头部
     for(let key in headers) {
       xhr.setRequestHeader(key, headers[key]);
