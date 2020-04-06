@@ -3,7 +3,7 @@
     <header class="header editor-header">
       <div class="left-box"></div>
       <!-- 文章标题 -->
-      <input placeholder="输入文章标签" spellcheck="false" maxlength="80" class="title-input title-input" />
+      <input placeholder="输入文章标签" spellcheck="false" maxlength="80" class="title-input title-input" v-model="title"/>
       <!-- 右边图片 -->
       <div class="right-box">
         <div class="main-image-selector with-padding">
@@ -44,7 +44,8 @@ export default {
       photo_file: null, // 封面图片
       data: [], // 图片 blob 数组
       html_data: [], // 文本 切片 数组
-      html_text_md5: "" // 文本内容的 md5 摘要
+      html_text_md5: "", // 文本内容的 md5 摘要
+      title : ''
     };
   },
   methods: {
@@ -95,7 +96,6 @@ export default {
         this.saveDoc(markdown, html, function_calls);
       }
     },
-
     // 为了防止 存储型 XSS 攻击 , 设计编码函数
     // HTML 编码
     encodeHtml(str) {
@@ -225,7 +225,9 @@ export default {
     async mergerTextRequest() {
       let data = {
         // 发送 文本切片数组长度
-        length: this.html_data.length
+        length: this.html_data.length,
+        // 文章 title
+        title : this.title
       };
       await this.$ajax
         .request({
@@ -242,12 +244,12 @@ export default {
           if (res.code === 7) {
             // 文本存储完毕
             
-            console.log(res.return_data);
-            // 把返回的数据 传递给 main.vue , 子组件与子组件通信
-            
-
+            let content_data = res.return_data
+            // console.log(content_data);
+            // 把返回的数据 传递给 main.vue , 子组件与子组件通信 , vuex
+            this.$store.commit('get_content_data',content_data)
             // 路由跳转
-            // this.$router.push('recommended');
+            this.$router.push('recommended');
           }
         });
     }

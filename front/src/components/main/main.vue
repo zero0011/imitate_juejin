@@ -45,7 +45,7 @@
                         <div class="info-row action-row">
                           <ul class="action-list" >
                             <li v-for="tag in content.tags" :key="tag.id" :class="tag.class" class="item">
-                              <a class="title-box" href="/">
+                              <a class="title-box" @click="addLikeCount">
                                 <img :src="tag.src" />
                                 <span class="count">{{tag.count}}</span>
                               </a>
@@ -67,6 +67,7 @@
 </template>
 
 <script>
+// eventBus
 export default {
   name: "main",
   data() {
@@ -120,13 +121,22 @@ export default {
               count: ""
             }
           ]
-        }
+        },
       ],
     }
   },
-  props : {
-    
-  }
+  created() {
+    let content_data =Object.create(this.$store.state).content_data; 
+    console.log(content_data)
+    this.contents.push(content_data);
+  },
+  methods: {
+    addLikeCount() {
+      
+      
+      console.log(1)
+    }
+  },
 };
 </script>
 

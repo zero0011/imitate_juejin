@@ -8,6 +8,8 @@ import 'element-ui/lib/theme-chalk/index.css';
 import axios from 'axios';
 import ajax from '../utils/ajax.js'
 
+// vuex
+import store from '../vuex'
 
 import mavonEditor from 'mavon-editor';
 Vue.use(mavonEditor);
@@ -34,4 +36,5 @@ new Vue({
   router,
   components: { App },
   template: '<App/>',
+  store
 })
