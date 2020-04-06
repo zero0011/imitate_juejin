@@ -24,10 +24,33 @@
         如果有存在封面图片 , 把图片也传递给后端(难点)
 ##### 难点 => 大文件上传
  - 前端
-    
+ 1. 获得文件对象 file
+    <input type='file'>
+ 2. 生成文件切片
+    const size = 1024; // 切片大小
+    let cur = 0;
+    file.slice(cur, cur + size)
+
+ 3. 并发上传切片
+    ajax + Promise.all  
+    发送 formData 
+
+ 4. 发送合并请求
+    function mergeRequest() {}
+    发送 file.size , file.name
 
  - 后端
-
+ 1. 跨域处理
+    res.setHeader("Access-Control-Allow-Origin", "*");
+ 2. 接收切片
+    使用 使用 multiparty 包处理前端传来的 FormData
+ 3. 合并切片
+    3.1 对 切片进行排序
+    3.2 合并切片
+        创建读写流 , 
+        const readStream = fs.createReadStream(path);
+        readStream.pipe(wirteStream);
+    并发合并切片
 
 #### 4. 发表文章
 
