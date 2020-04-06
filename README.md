@@ -57,11 +57,6 @@
 
 
 ## 后端
-### 连接数据库 使用 sequelize 工具
-    1.1 安装 sequelize 
-        npm install --save sequelize
-    1.2 sequelize 的 增删改查
-    sequelize.findOne
     
 ### 路由接口
     
@@ -78,6 +73,14 @@
 ## 数据库
  mysql
 
+### 连接数据库 使用 sequelize 工具
+    1.1 安装 sequelize 
+        npm install --save sequelize
+    1.2 sequelize 的 增删改查
+    sequelize.findOne
 
 
 # git 的基本用法
+- git add
+- git commit -m ''
+- git push

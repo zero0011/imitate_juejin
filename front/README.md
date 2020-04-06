@@ -22,6 +22,52 @@ npm run dev
 ###  自己实现一个 发布订阅模式 , 实现一个 EventEmitter
     Vue 中 , emit和 on 方法. 他们都带有 类似发布订阅模式 , EventBus的原理
 
+    let event = {
+        list : {},
+        on (key ,fn) {
+        if(!this.list[key]) {
+            this.list[key] = [];
+        }
+        this.list[key].push(fn)
+        },
+        emit() {
+            let key = Array.prototype.shift.call(arguments);
+            fns = this.list[key];
+
+            if(!fns || fns.length === 0) {
+                return false;
+            }
+
+            fns.forEach(fn => {
+                fn.apply(this, arguments);
+            })
+        },
+        // 取消订阅的方法
+        remove(key, fn) {
+            let fns = this.list[key];
+            // 如果缓存列表中没有函数 , 返回 false
+            if(!fns) return false;
+            // 如果没有传对应函数的话 , 就会将 key 值对应缓存列表中的函数都情况掉
+            if(!fn) {
+                fns && (fns.length = 0)
+            } else {
+                // 遍历缓存列表 , 看看传入的 fn 与 哪个函数相同
+                // 如果相同就直接从缓存列表中删除即可
+                fns.forEach((cb ,i) => {
+                    if(cb === fn) {
+                        fns.splice(i,1)
+                    }
+                })
+            }
+        }
+    }
+
+#### 思路
+- 创建一个对象(缓存列表)
+- on方法用来把回调函数 fn 都加到缓存列表中
+- emit 方法取到 arguments 里第一个当做 key , 根据 key 值去执行对应缓存列表中的函数
+- remove方法可以根据 key 值取消订阅
+
 ## 状态管理 , Vuex
 
 - state 用来数据共享数据存储
@@ -74,4 +120,3 @@ npm run dev
     this.$store.dispatch('aEdit',15)
 
 
-## Vue 生命周期
