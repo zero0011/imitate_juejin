@@ -31,6 +31,21 @@ var user = sequelize.define('users',{
         type : Sequelize.TEXT
     },
 
+    // 文本标题
+    title : {
+        type : Sequelize.STRING(50)
+    },
+
+    // 文本点赞数
+    like_count : {
+        type : Sequelize.INTEGER
+    },
+
+    // 文本讨论数
+    comment_count : {
+        type : Sequelize.INTEGER
+    },
+
     // 封面图片
     image : {
         type : Sequelize.BLOB

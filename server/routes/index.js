@@ -326,7 +326,7 @@ router.post('/merge_markdown', function (req, res, next) {
     res.setHeader('Access-Control-Max-Age', 6);
 
     // 用req.body引用请求体
-    let { length } = req.body;
+    let { length , title} = req.body;
     if (length == markdown_data.length) {
       // 全部接收完毕
       let merge_markdown = markdown_data.join("");
@@ -335,9 +335,10 @@ router.post('/merge_markdown', function (req, res, next) {
       let session_id = req.cookies[SESSION_ID];
       let userInfo = session[session_id];
       // 文本 存储到数据库
-      function storageText(username, text) {
+      function storageText(username, text, title) {
         user.update({
-          article: text
+          article: text,
+          title : title
         }, {
           where: {
             username: username
@@ -347,10 +348,11 @@ router.post('/merge_markdown', function (req, res, next) {
 
       // 读取数据库中的
       let return_data = {
-        href : '',
-        author : '',
-        time : Date.now(),
-        title : '',
+        href : '/title',
+        post : '专栏',
+        author : '千叶风行',
+        time : '12小时前', //现在的时间 减去 数据库中被创建的时间
+        title : '关于vue的一些东西',
         tags : [
           {
             id : 1,
@@ -372,12 +374,30 @@ router.post('/merge_markdown', function (req, res, next) {
           }
         ]
       };
-      
+
+      // 查看数据库相关数据 并 赋值给 return_data
+      function findAndAssign(username,return_data) {
+        return user.findOne({
+          where : {
+            username : username
+          }
+        })
+      }
 
       // 存储到数据库并返回
       async function storageAndReturn() {
-        await storageText(userInfo.user.username, merge_markdown);
+        await storageText(userInfo.user.username, merge_markdown,title);
 
+        let is_exist = await findAndAssign(userInfo.user.username,return_data);
+        if(!is_exist) {
+
+        } else {
+          let user = is_exist.dataValues;
+          return_data.author = user.username;
+          return_data.title = user.title;
+          return_data.tags[0].count = user.like_count;
+          return_data.tags[1].count = user.comment_count;
+        }
         res.json({
           code: 7, // 返回代码
           return_data
